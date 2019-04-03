@@ -13,7 +13,7 @@ from .mimebundle import spec_to_mimebundle
 # Renderer registry
 # ==============================================================================
 MimeBundleType = Dict[str, object]
-RendererType = Callable[..., MimeBundleType]
+RendererType = Callable[[], MimeBundleType]
 
 
 class RendererRegistry(PluginRegistry[RendererType]):
