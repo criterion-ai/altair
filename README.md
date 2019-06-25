@@ -1,4 +1,4 @@
-# Altair
+# Altair <a href="https://vega.github.io/vega-lite/"><img align="right" src="https://altair-viz.github.io/_static/altair-logo-light.png" height="50"></img></a>
 
 [![build status](http://img.shields.io/travis/altair-viz/altair/master.svg?style=flat)](https://travis-ci.org/altair-viz/altair)
 [![JOSS Paper](http://joss.theoj.org/papers/10.21105/joss.01057/status.svg)](http://joss.theoj.org/papers/10.21105/joss.01057)
@@ -6,8 +6,6 @@
 [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/altair-viz/altair_notebooks/blob/master/notebooks/Index.ipynb)
 
 [http://altair-viz.github.io](http://altair-viz.github.io)
-
-<a href="https://altair-viz.github.io"><img src="https://altair-viz.github.io/_static/altair-logo-light.png" align="left" hspace="40" vspace="6" alt="Altair logo" width="150px"></a>
 
 **Altair** is a declarative statistical visualization library for Python. With Altair, you can spend more time understanding your data and its meaning. Altair's
 API is simple, friendly and consistent and built on top of the powerful
@@ -43,6 +41,39 @@ alt.Chart(cars).mark_point().encode(
 ```
 
 ![Altair Visualization](https://raw.githubusercontent.com/altair-viz/altair/master/images/cars.png)
+
+One of the unique features of Altair, inherited from Vega-Lite, is a declarative grammar of not just visualization, but _interaction_. 
+With a few modifications to the example above we can created a linked histogram which is filtered based on a selection of the scatter plot.
+
+```python 
+import altair as alt
+from vega_datasets import data
+
+source = data.cars()
+
+brush = alt.selection(type='interval')
+
+points = alt.Chart(source).mark_point().encode(
+    x='Horsepower',
+    y='Miles_per_Gallon',
+    color=alt.condition(brush, 'Origin', alt.value('lightgray'))
+).add_selection(
+    brush
+)
+
+bars = alt.Chart(source).mark_bar().encode(
+    y='Origin',
+    color='Origin',
+    x='count(Origin)'
+).transform_filter(
+    brush
+)
+
+points & bars
+```
+
+![Altair Visualization Gif](https://raw.githubusercontent.com/altair-viz/altair/master/images/cars_scatter_bar.gif)
+
 
 ## Getting your Questions Answered
 

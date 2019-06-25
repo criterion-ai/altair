@@ -37,18 +37,27 @@ Encoding Channels
    ColorValue
    Column
    Detail
+   Facet
+   FieldChannelMixin
    Fill
    FillValue
+   FillOpacity
+   FillOpacityValue
    Href
    HrefValue
    Key
    Latitude
    Latitude2
+   Latitude2Value
+   LatitudeValue
    Longitude
    Longitude2
+   Longitude2Value
+   LongitudeValue
    Opacity
    OpacityValue
    Order
+   OrderValue
    Row
    Shape
    ShapeValue
@@ -56,18 +65,32 @@ Encoding Channels
    SizeValue
    Stroke
    StrokeValue
+   StrokeOpacity
+   StrokeOpacityValue
+   StrokeWidth
+   StrokeWidthValue
    Text
    TextValue
    Tooltip
    TooltipValue
+   Undefined
+   ValueChannelMixin
    X
-   XValue
    X2
    X2Value
+   XValue
+   XError
+   XError2
+   XError2Value
+   XErrorValue
    Y
-   YValue
    Y2
    Y2Value
+   YValue
+   YError
+   YError2
+   YError2Value
+   YErrorValue
 
 API Functions
 -------------
@@ -78,6 +101,7 @@ API Functions
    :nosignatures:
 
    layer
+   concat
    vconcat
    hconcat
    repeat
@@ -109,6 +133,8 @@ Low-Level Schema Wrappers
    Align
    AnyMark
    AreaConfig
+   ArgmaxDef
+   ArgminDef
    AutoSizeParams
    AutosizeType
    Axis
@@ -116,7 +142,6 @@ Low-Level Schema Wrappers
    AxisOrient
    AxisResolveMap
    BarConfig
-   BaseBinding
    BaseLegendLayout
    BaseMarkConfig
    BaseTitleConfig
@@ -133,54 +158,40 @@ Low-Level Schema Wrappers
    BrushConfig
    CalculateTransform
    Color
-   ColorFieldDefWithCondition
-   ColorValue
-   ColorValueDefWithCondition
-   Column
    CompositeMark
    CompositeMarkDef
    CompositionConfig
    ConcatSpec
    ConditionOnlyDefMarkPropFieldDef
    ConditionOnlyDefMarkPropFieldDefTypeForShape
-   ConditionOnlyDefMarkPropFieldDefnominal
    ConditionOnlyDefTextFieldDef
-   ConditionalColorValueDef
    ConditionalMarkPropFieldDef
    ConditionalMarkPropFieldDefTypeForShape
-   ConditionalMarkPropFieldDefnominal
    ConditionalNumberValueDef
-   ConditionalPredicateColorValueDef
    ConditionalPredicateMarkPropFieldDef
    ConditionalPredicateMarkPropFieldDefTypeForShape
-   ConditionalPredicateMarkPropFieldDefnominal
    ConditionalPredicateNumberValueDef
    ConditionalPredicateStringValueDef
    ConditionalPredicateTextFieldDef
-   ConditionalPredicateTextValueDef
    ConditionalPredicateValueDef
-   ConditionalSelectionColorValueDef
    ConditionalSelectionMarkPropFieldDef
    ConditionalSelectionMarkPropFieldDefTypeForShape
-   ConditionalSelectionMarkPropFieldDefnominal
    ConditionalSelectionNumberValueDef
    ConditionalSelectionStringValueDef
    ConditionalSelectionTextFieldDef
-   ConditionalSelectionTextValueDef
    ConditionalSelectionValueDef
    ConditionalStringValueDef
    ConditionalTextFieldDef
-   ConditionalTextValueDef
    ConditionalValueDef
    Config
    CsvDataFormat
    Cursor
    Data
    DataFormat
+   DataSource
    Datasets
    DateTime
    Day
-   Detail
    DictInlineDataset
    Dir
    DsvDataFormat
@@ -195,62 +206,53 @@ Low-Level Schema Wrappers
    ErrorBarDef
    ErrorBarExtent
    EventStream
-   Facet
    FacetFieldDef
    FacetMapping
    FacetSpec
    FacetedEncoding
    FacetedUnitSpec
    Field
-   FieldChannelMixin
-   FieldDef
-   FieldDefWithConditionMarkPropFieldDefTypeForShapestring
-   FieldDefWithConditionMarkPropFieldDefnominalstring
+   FieldDefWithConditionMarkPropFieldDefTypeForShapestringnull
    FieldDefWithConditionMarkPropFieldDefnumber
    FieldDefWithConditionMarkPropFieldDefstringnull
-   FieldDefWithConditionTextFieldDefstringnumberboolean
+   FieldDefWithConditionTextFieldDefValue
+   FieldDefWithoutScale
    FieldEqualPredicate
    FieldGTEPredicate
    FieldGTPredicate
    FieldLTEPredicate
    FieldLTPredicate
+   FieldName
    FieldOneOfPredicate
    FieldRangePredicate
    FieldValidPredicate
-   Fill
-   FillValue
-   Fillopacity
-   FillopacityValue
    FilterTransform
    FlattenTransform
    FoldTransform
    FontStyle
    FontWeight
-   GenericBinMixinsbooleanBinParams
-   GenericBinMixinsbooleanBinParamsbinnednull
+   Generator
    GenericUnitSpecEncodingAnyMark
+   GraticuleGenerator
+   GraticuleParams
    HConcatSpec
    Header
    HeaderConfig
-   Href
-   HrefValue
    ImputeMethod
    ImputeParams
    ImputeSequence
    ImputeTransform
    InlineData
    InlineDataset
+   InputBinding
    Interpolate
    IntervalSelection
    IntervalSelectionConfig
    JoinAggregateFieldDef
    JoinAggregateTransform
    JsonDataFormat
-   Key
    LabelOverlap
    LatLongFieldDef
-   Latitude
-   Latitude2
    LayerSpec
    LayoutAlign
    LayoutBounds
@@ -266,8 +268,6 @@ Low-Level Schema Wrappers
    LogicalNotPredicate
    LogicalOperandPredicate
    LogicalOrPredicate
-   Longitude
-   Longitude2
    LookupData
    LookupTransform
    Mark
@@ -282,11 +282,7 @@ Low-Level Schema Wrappers
    NumberValueDef
    NumericFieldDefWithCondition
    NumericValueDefWithCondition
-   Opacity
-   OpacityValue
-   Order
    OrderFieldDef
-   OrderValue
    Orient
    Orientation
    OverlayMarkDef
@@ -309,12 +305,9 @@ Low-Level Schema Wrappers
    Resolve
    ResolveMode
    Root
-   Row
    RowColLayoutAlign
    RowColboolean
    RowColnumber
-   SCHEMA_URL
-   SCHEMA_VERSION
    SampleTransform
    Scale
    ScaleConfig
@@ -339,23 +332,22 @@ Low-Level Schema Wrappers
    SelectionOr
    SelectionPredicate
    SelectionResolution
-   Shape
+   SequenceGenerator
+   SequenceParams
    ShapeFieldDefWithCondition
-   ShapeValue
    ShapeValueDefWithCondition
    SignalRef
    SingleDefUnitChannel
    SingleSelection
    SingleSelectionConfig
    SingleTimeUnit
-   Size
-   SizeValue
    Sort
    SortArray
    SortByEncoding
    SortField
    SortOrder
    Spec
+   SphereGenerator
    StackOffset
    StackTransform
    StandardType
@@ -363,22 +355,14 @@ Low-Level Schema Wrappers
    StringFieldDefWithConditionTypeForShape
    StringValueDefWithCondition
    StringValueDefWithConditionTypeForShape
-   Stroke
    StrokeCap
    StrokeJoin
-   StrokeValue
-   Strokeopacity
-   StrokeopacityValue
-   Strokewidth
-   StrokewidthValue
    StyleConfigIndex
    SymbolShape
-   Text
    TextBaseline
    TextConfig
    TextFieldDef
    TextFieldDefWithCondition
-   TextValue
    TextValueDefWithCondition
    TickConfig
    TimeUnit
@@ -388,9 +372,7 @@ Low-Level Schema Wrappers
    TitleFrame
    TitleOrient
    TitleParams
-   Tooltip
    TooltipContent
-   TooltipValue
    TopLevelConcatSpec
    TopLevelFacetSpec
    TopLevelHConcatSpec
@@ -401,46 +383,28 @@ Low-Level Schema Wrappers
    TopLevelVConcatSpec
    TopoDataFormat
    Transform
-   Type
    TypeForShape
+   TypedFieldDef
    Undefined
    UnitSpec
    UrlData
    UtcMultiTimeUnit
    UtcSingleTimeUnit
    VConcatSpec
-   ValueChannelMixin
-   ValueDefWithConditionMarkPropFieldDefTypeForShapestring
-   ValueDefWithConditionMarkPropFieldDefnominalstring
+   Value
+   ValueDefWithConditionMarkPropFieldDefTypeForShapestringnull
    ValueDefWithConditionMarkPropFieldDefnumber
    ValueDefWithConditionMarkPropFieldDefstringnull
-   ValueDefWithConditionTextFieldDefstringnumberboolean
-   ValueDefWithOptionalConditionMarkPropFieldDefTypeForShapestring
-   ValueDefWithOptionalConditionMarkPropFieldDefnominalstring
+   ValueDefWithConditionTextFieldDefValue
+   ValueDefWithOptionalConditionMarkPropFieldDefTypeForShapestringnull
    ValueDefWithOptionalConditionMarkPropFieldDefnumber
    ValueDefWithOptionalConditionMarkPropFieldDefstringnull
-   ValueDefWithOptionalConditionTextFieldDefstringnumberboolean
+   ValueDefWithOptionalConditionTextFieldDefValue
    VegaLiteSchema
    ViewBackground
    ViewConfig
    WindowFieldDef
    WindowOnlyOp
    WindowTransform
-   X
-   X2
-   X2Value
-   XValue
    XValueDef
-   Xerror
-   Xerror2
-   Xerror2Value
-   XerrorValue
-   Y
-   Y2
-   Y2Value
-   YValue
    YValueDef
-   Yerror
-   Yerror2
-   Yerror2Value
-   YerrorValue

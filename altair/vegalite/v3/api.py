@@ -107,7 +107,7 @@ Bin = core.BinParams
 class LookupData(core.LookupData):
     def to_dict(self, *args, **kwargs):
         """Convert the chart to a dictionary suitable for JSON export"""
-        copy = self.copy(ignore=['data'])
+        copy = self.copy(deep=False)
         context = kwargs.get('context', {})
         copy.data = _prepare_data(copy.data, context)
         return super(LookupData, copy).to_dict(*args, **kwargs)
@@ -118,7 +118,7 @@ class FacetMapping(core.FacetMapping):
     _class_is_valid_at_instantiation = False
 
     def to_dict(self, *args, **kwargs):
-        copy = self.copy()
+        copy = self.copy(deep=False)
         context = kwargs.get('context', {})
         data = context.get('data', None)
         if isinstance(self.row, six.string_types):
@@ -150,82 +150,43 @@ def _get_channels_mapping():
 
 # -------------------------------------------------------------------------
 # Tools for working with selections
-class SelectionMapping(core.VegaLiteSchema):
-    """A mapping of selection names to selection definitions.
+class Selection(object):
+    """A Selection object"""
+    _counter = 0
 
-    This is designed to match the schema of the "selection" property of
-    top-level objects.
-    """
-    _schema = {
-        'type': 'object',
-        'additionalPropeties': {'$ref': '#/definitions/SelectionDef'}
-    }
-    _rootschema = core.Root._schema
+    @classmethod
+    def _get_name(cls):
+        cls._counter += 1
+        return "selector{:03d}".format(cls._counter)
 
-    def __add__(self, other):
-        if isinstance(other, SelectionMapping):
-            copy = self.copy()
-            copy._kwds.update(other._kwds)
-            return copy
-        else:
-            return NotImplemented
+    def __init__(self, name, selection):
+        if name is None:
+            name = self._get_name()
+        self.name = name
+        self.selection = selection
 
-    def __iadd__(self, other):
-        if isinstance(other, SelectionMapping):
-            self._kwds.update(other._kwds)
-            return self
-        else:
-            return NotImplemented
-
-
-class NamedSelection(SelectionMapping):
-    """A SelectionMapping with a single named selection item"""
-    _schema = {
-        'type': 'object',
-        'additionalPropeties': {'$ref': '#/definitions/SelectionDef'},
-        'minProperties': 1, 'maxProperties': 1
-    }
-    _rootschema = core.Root._schema
-
-    def _get_name(self):
-        if len(self._kwds) != 1:
-            raise ValueError("NamedSelection has multiple properties")
-        return next(iter(self._kwds))
+    def __repr__(self):
+        return "Selection({0!r}, {1})".format(self.name, self.selection)
 
     def ref(self):
-        """Return a selection reference to this object
+        return {'selection': self.name}
 
-        Examples
-        --------
-        >>> import altair as alt
-        >>> sel = alt.selection_interval(name='interval')
-        >>> sel.ref()
-        {'selection': 'interval'}
-
-        """
-        return {"selection": self._get_name()}
+    def to_dict(self):
+        return {'selection': self.name}
 
     def __invert__(self):
-        return core.SelectionNot(**{'not': self._get_name()})
+        return core.SelectionNot(**{'not': self.name})
 
     def __and__(self, other):
-        if isinstance(other, NamedSelection):
-            other = other._get_name()
-        return core.SelectionAnd(**{'and': [self._get_name(), other]})
+        if isinstance(other, Selection):
+            other = other.name
+        return core.SelectionAnd(**{'and': [self.name, other]})
 
     def __or__(self, other):
-        if isinstance(other, NamedSelection):
-            other = other._get_name()
-        return core.SelectionOr(**{'or': [self._get_name(), other]})
+        if isinstance(other, Selection):
+            other = other.name
+        return core.SelectionOr(**{'or': [self.name, other]})
 
-    def __add__(self, other):
-        copy = SelectionMapping(**self._kwds)
-        copy += other
-        return copy
-
-    def __iadd__(self, other):
-        # this will be delegated to SelectionMapping
-        return NotImplemented
 
 # ------------------------------------------------------------------------
 # Top-Level Functions
@@ -251,15 +212,11 @@ def selection(name=None, type=Undefined, **kwds):
 
     Returns
     -------
-    selection: NamedSelection
+    selection: Selection
         The selection object that can be used in chart creation.
     """
-    if name is None:
-        name = "selector{:03d}".format(selection.counter)
-        selection.counter += 1
-    return NamedSelection(**{name: core.SelectionDef(type=type, **kwds)})
+    return Selection(name, core.SelectionDef(type=type, **kwds))
 
-selection.counter = 1
 
 @utils.use_signature(core.IntervalSelection)
 def selection_interval(**kwargs):
@@ -314,7 +271,7 @@ def condition(predicate, if_true, if_false, **kwargs):
 
     Parameters
     ----------
-    predicate: NamedSelection, LogicalOperandPredicate, expr.Expression, dict, or string
+    predicate: Selection, LogicalOperandPredicate, expr.Expression, dict, or string
         the selection predicate or test predicate for the condition.
         if a string is passed, it will be treated as a test operand.
     if_true:
@@ -339,8 +296,8 @@ def condition(predicate, if_true, if_false, **kwargs):
                        core.FieldGTPredicate, core.FieldLTEPredicate,
                        core.FieldGTEPredicate, core.SelectionPredicate)
 
-    if isinstance(predicate, NamedSelection):
-        condition = {'selection': predicate._get_name()}
+    if isinstance(predicate, Selection):
+        condition = {'selection': predicate.name}
     elif isinstance(predicate, selection_predicates):
         condition = {'selection': predicate}
     elif isinstance(predicate, test_predicates):
@@ -397,7 +354,7 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
         context.setdefault('datasets', {})
         is_top_level = context.get('top_level', True)
 
-        copy = self.copy()
+        copy = self.copy(deep=False)
         original_data = getattr(copy, 'data', Undefined)
         copy.data = _prepare_data(original_data, context)
 
@@ -488,9 +445,9 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
             the format to write: one of ['json', 'html', 'png', 'svg'].
             If not specified, the format will be determined from the filename.
         override_data_transformer : boolean (optional)
-            If True (default), then the save action will be done with the
-            default data_transformer with max_rows set to None. If False,
-            then use the currently active data transformer.
+            If True (default), then the save action will be done with
+            the MaxRowsError disabled. If False, then do not change the data
+            transformer.
         scale_factor : float
             For svg or png formats, scale the image by this factor when saving.
             This can be used to control the size or resolution of the output.
@@ -513,24 +470,34 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
         # that save() will succeed even for large datasets that would
         # normally trigger a MaxRowsError
         if override_data_transformer:
-            with data_transformers.enable('default', max_rows=None):
+            with data_transformers.disable_max_rows():
                 result = save(**kwds)
         else:
             result = save(**kwds)
         return result
 
-    # Layering and stacking
+    # Fallback for when rendering fails; the full repr is too long to be
+    # useful in nearly all cases.
+    def __repr__(self):
+        return "alt.{}(...)".format(self.__class__.__name__)
 
+    # Layering and stacking
     def __add__(self, other):
-        return LayerChart(layer=[self, other])
+        if not isinstance(other, TopLevelMixin):
+            raise ValueError("Only Chart objects can be layered.")
+        return layer(self, other)
 
     def __and__(self, other):
-        return VConcatChart(vconcat=[self, other])
+        if not isinstance(other, TopLevelMixin):
+            raise ValueError("Only Chart objects can be concatenated.")
+        return vconcat(self, other)
 
     def __or__(self, other):
-        return HConcatChart(hconcat=[self, other])
+        if not isinstance(other, TopLevelMixin):
+            raise ValueError("Only Chart objects can be concatenated.")
+        return hconcat(self, other)
 
-    def repeat(self, row=Undefined, column=Undefined, **kwargs):
+    def repeat(self, repeat=Undefined, row=Undefined, column=Undefined, columns=Undefined, **kwargs):
         """Return a RepeatChart built from the chart
 
         Fields within the chart can be set to correspond to the row or
@@ -538,47 +505,71 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
 
         Parameters
         ----------
+        repeat : list
+            a list of data column names to be repeated. This cannot be
+            used along with the ``row`` or ``column`` argument.
         row : list
             a list of data column names to be mapped to the row facet
         column : list
             a list of data column names to be mapped to the column facet
+        columns : int
+            the maximum number of columns before wrapping. Only referenced
+            if ``repeat`` is specified.
+        **kwargs :
+            additional keywords passed to RepeatChart.
 
         Returns
         -------
         chart : RepeatChart
             a repeated chart.
-
         """
-        repeat = core.RepeatMapping(row=row, column=column)
-        return RepeatChart(spec=self, repeat=repeat, **kwargs)
+        repeat_specified = (repeat is not Undefined)
+        rowcol_specified = (row is not Undefined or column is not Undefined)
+
+        if repeat_specified and rowcol_specified:
+            raise ValueError("repeat argument cannot be combined with row/column argument.")
+
+        if repeat_specified:
+            repeat = repeat
+        else:
+            repeat = core.RepeatMapping(row=row, column=column)
+
+        return RepeatChart(spec=self, repeat=repeat, columns=columns, **kwargs)
 
     def properties(self, **kwargs):
         """Set top-level properties of the Chart.
 
         Argument names and types are the same as class initialization.
         """
-        copy = self.copy(deep=True, ignore=['data'])
+        copy = self.copy(deep=False)
         for key, val in kwargs.items():
-            setattr(copy, key, val)
+            if key == 'selection' and isinstance(val, Selection):
+                # For backward compatibility with old selection interface.
+                setattr(copy, key, {val.name: val.selection})
+            else:
+                # Don't validate data, because it hasn't been processed.
+                if key != 'data':
+                    self.validate_property(key, val)
+                setattr(copy, key, val)
         return copy
 
     def add_selection(self, *selections):
-        """Add one or more selections to the chart"""
+        """Add one or more selections to the chart."""
         if not selections:
             return self
-        else:
-            copy = self.copy(deep=True, ignore=['data'])
-            if copy.selection is Undefined:
-                copy.selection = SelectionMapping()
-            for selection in selections:
-                copy.selection += selection
-            return copy
+        copy = self.copy(deep=['selection'])
+        if copy.selection is Undefined:
+            copy.selection = {}
+
+        for s in selections:
+            copy.selection[s.name] = s.selection
+        return copy
 
     def project(self, type='mercator', center=Undefined, clipAngle=Undefined, clipExtent=Undefined,
                 coefficient=Undefined, distance=Undefined, fraction=Undefined, lobes=Undefined,
                 parallel=Undefined, precision=Undefined, radius=Undefined, ratio=Undefined,
                 rotate=Undefined, spacing=Undefined, tilt=Undefined, **kwds):
-        """Add a geographic projection to the chartself.
+        """Add a geographic projection to the chart.
 
         This is generally used either with ``mark_geoshape`` or with the
         ``latitude``/``longitude`` encodings.
@@ -653,11 +644,10 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
 
     def _add_transform(self, *transforms):
         """Copy the chart and add specified transforms to chart.transform"""
-        copy = self.copy()
+        copy = self.copy(deep=['transform'])
         if copy.transform is Undefined:
-            copy.transform = list(transforms)
-        else:
-            copy.transform.extend(transforms)
+            copy.transform = []
+        copy.transform.extend(transforms)
         return copy
 
     def transform_aggregate(self, aggregate=Undefined, groupby=Undefined, **kwds):
@@ -927,8 +917,8 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
         >>> chart.transform[0]
         JoinAggregateTransform({
           joinaggregate: [JoinAggregateFieldDef({
-            as: 'x',
-            field: 'y',
+            as: FieldName('x'),
+            field: FieldName('y'),
             op: AggregateOp('sum')
           })]
         })
@@ -961,7 +951,7 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
             (2) a range predicate
             (3) a selection predicate
             (4) a logical operand combining (1)-(3)
-            (5) a NamedSelection object
+            (5) a Selection object
 
         Returns
         -------
@@ -975,8 +965,8 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
         """
         selection_predicates = (core.SelectionNot, core.SelectionOr,
                                 core.SelectionAnd, core.SelectionOperand)
-        if isinstance(filter, NamedSelection):
-            filter = {'selection': filter._get_name()}
+        if isinstance(filter, Selection):
+            filter = {'selection': filter.name}
         elif isinstance(filter, selection_predicates):
             filter = {'selection': filter}
         return self._add_transform(core.FilterTransform(filter=filter, **kwargs))
@@ -1284,7 +1274,7 @@ class TopLevelMixin(mixins.ConfigMethodMixin):
         if not hasattr(self, 'resolve'):
             raise ValueError("{} object has no attribute "
                              "'resolve'".format(self.__class__))
-        copy = self.copy()
+        copy = self.copy(deep=['resolve'])
         if copy.resolve is Undefined:
             copy.resolve = core.Resolve()
         for key, val in kwargs.items():
@@ -1456,15 +1446,11 @@ class EncodingMixin(object):
             if obj is not None:
                 kwargs[prop] = _wrap_in_channel_class(obj, prop)
 
-        copy = self.copy(deep=True, ignore=['data'])
+        copy = self.copy(deep=['encoding'])
 
         # get a copy of the dict representation of the previous encoding
-        encoding = copy.encoding
-        if encoding is Undefined:
-            encoding = {}
-        elif isinstance(encoding, dict):
-            pass
-        else:
+        encoding = copy._get('encoding', {})
+        if isinstance(encoding, core.VegaLiteSchema):
             encoding = {k: v for k, v in encoding._kwds.items()
                         if v is not Undefined}
 
@@ -1472,6 +1458,56 @@ class EncodingMixin(object):
         encoding.update(kwargs)
         copy.encoding = core.FacetedEncoding(**encoding)
         return copy
+
+    def facet(self, facet=Undefined, row=Undefined, column=Undefined, data=Undefined,
+              columns=Undefined, **kwargs):
+        """Create a facet chart from the current chart.
+
+        Faceted charts require data to be specified at the top level; if data
+        is not specified, the data from the current chart will be used at the
+        top level.
+
+        Parameters
+        ----------
+        facet : string or alt.Facet (optional)
+            The data column to use as an encoding for a wrapped facet.
+            If specified, then neither row nor column may be specified.
+        column : string or alt.Column (optional)
+            The data column to use as an encoding for a column facet.
+            May be combined with row argument, but not with facet argument.
+        row : string or alt.Column (optional)
+            The data column to use as an encoding for a row facet.
+            May be combined with column argument, but not with facet argument.
+        data : string or dataframe (optional)
+            The dataset to use for faceting. If not supplied, then data must
+            be specified in the top-level chart that calls this method.
+        columns : integer
+            the maximum number of columns for a wrapped facet.
+
+        Returns
+        -------
+        self :
+            for chaining
+        """
+        facet_specified = (facet is not Undefined)
+        rowcol_specified = (row is not Undefined or column is not Undefined)
+
+        if facet_specified and rowcol_specified:
+            raise ValueError("facet argument cannot be combined with row/column argument.")
+
+        if data is Undefined:
+            if self.data is Undefined:
+                 raise ValueError("Facet charts require data to be specified at the top level.")
+            self = self.copy(deep=False)
+            data, self.data = self.data, Undefined
+
+        if facet_specified:
+            if isinstance(facet, six.string_types):
+                facet = channels.Facet(facet)
+        else:
+            facet = FacetMapping(row=row, column=column)
+
+        return FacetChart(spec=self, facet=facet, data=data, columns=columns, **kwargs)
 
 
 class Chart(TopLevelMixin, EncodingMixin, mixins.MarkMethodMixin,
@@ -1598,29 +1634,8 @@ class Chart(TopLevelMixin, EncodingMixin, mixins.MarkMethodMixin,
             encodings.append('x')
         if bind_y:
             encodings.append('y')
-        copy = self.copy(deep=True, ignore=['data'])
-
-        if copy.selection is Undefined:
-            copy.selection = SelectionMapping()
-        if isinstance(copy.selection, dict):
-            copy.selection = SelectionMapping(**copy.selection)
-        copy.selection += selection(type='interval', bind='scales',
-                                    encodings=encodings)
-        return copy
-
-    def facet(self, row=Undefined, column=Undefined, data=Undefined, **kwargs):
-        """Create a facet chart from the current chart.
-
-        Faceted charts require data to be specified at the top level; if data
-        is not specified, the data from the current chart will be used at the
-        top level.
-        """
-        if data is Undefined:
-            data = self.data
-            self = self.copy()
-            self.data = Undefined
-        return FacetChart(spec=self, facet=FacetMapping(row=row, column=column),
-                          data=data, **kwargs)
+        return self.add_selection(selection_interval(bind='scales',
+                                                     encodings=encodings))
 
 
 def _check_if_valid_subspec(spec, classname):
@@ -1631,6 +1646,8 @@ def _check_if_valid_subspec(spec, classname):
     err = ('Objects with "{0}" attribute cannot be used within {1}. '
            'Consider defining the {0} attribute in the {1} object instead.')
 
+    if not isinstance(spec, (core.SchemaBase, dict)):
+        raise ValueError("Only chart objects can be used in {0}.".format(classname))
     for attr in TOPLEVEL_ONLY_KEYS:
         if isinstance(spec, core.SchemaBase):
             val = getattr(spec, attr, Undefined)
@@ -1638,6 +1655,37 @@ def _check_if_valid_subspec(spec, classname):
             val = spec.get(attr, Undefined)
         if val is not Undefined:
             raise ValueError(err.format(attr, classname))
+
+
+def _check_if_can_be_layered(spec):
+    """Check if the spec can be layered."""
+    def _get(spec, attr):
+        if isinstance(spec, core.SchemaBase):
+            return spec._get(attr)
+        else:
+            return spec.get(attr, Undefined)
+    encoding = _get(spec, 'encoding')
+    if encoding is not Undefined:
+        for channel in ['row', 'column', 'facet']:
+            if _get(encoding, channel) is not Undefined:
+                raise ValueError("Faceted charts cannot be layered.")
+    if isinstance(spec, (Chart, LayerChart)):
+        return
+
+    if not isinstance(spec, (core.SchemaBase, dict)):
+        raise ValueError("Only chart objects can be layered.")
+    if  _get(spec, 'facet') is not Undefined:
+        raise ValueError("Faceted charts cannot be layered.")
+    if isinstance(spec, FacetChart) or _get(spec, 'facet') is not Undefined:
+        raise ValueError("Faceted charts cannot be layered.")
+    if isinstance(spec, RepeatChart) or _get(spec, 'repeat') is not Undefined:
+        raise ValueError("Repeat charts cannot be layered.")
+    if isinstance(spec, ConcatChart) or _get(spec, 'concat') is not Undefined:
+        raise ValueError("Concatenated charts cannot be layered.")
+    if isinstance(spec, HConcatChart) or _get(spec, 'hconcat') is not Undefined:
+        raise ValueError("Concatenated charts cannot be layered.")
+    if isinstance(spec, VConcatChart) or _get(spec, 'vconcat') is not Undefined:
+        raise ValueError("Concatenated charts cannot be layered.")
 
 
 @utils.use_signature(core.TopLevelRepeatSpec)
@@ -1666,12 +1714,12 @@ class RepeatChart(TopLevelMixin, core.TopLevelRepeatSpec):
             copy of self, with interactive axes added
 
         """
-        copy = self.copy()
+        copy = self.copy(deep=False)
         copy.spec = copy.spec.interactive(name=name, bind_x=bind_x, bind_y=bind_y)
         return copy
 
 
-def repeat(repeater):
+def repeat(repeater='repeat'):
     """Tie a channel to the row or column within a repeated chart
 
     The output of this should be passed to the ``field`` attribute of
@@ -1680,13 +1728,14 @@ def repeat(repeater):
     Parameters
     ----------
     repeater : {'row'|'column'|'repeat'}
-        The repeater to tie the field to.
+        The repeater to tie the field to. Default is 'repeat'.
 
     Returns
     -------
     repeat : RepeatRef object
     """
-    assert repeater in ['row', 'column', 'repeat']
+    if repeater not in ['row', 'column', 'repeat']:
+        raise ValueError("repeater must be one of ['row', 'column', 'repeat']")
     return core.RepeatRef(repeat=repeater)
 
 
@@ -1699,19 +1748,18 @@ class ConcatChart(TopLevelMixin, core.TopLevelConcatSpec):
             _check_if_valid_subspec(spec, 'ConcatChart')
         super(ConcatChart, self).__init__(data=data, concat=list(concat),
                                           columns=columns, **kwargs)
+        self.data, self.concat = _combine_subchart_data(self.data, self.concat)
 
     def __ior__(self, other):
         _check_if_valid_subspec(other, 'ConcatChart')
         self.concat.append(other)
+        self.data, self.concat = _combine_subchart_data(self.data, self.concat)
         return self
 
     def __or__(self, other):
-        _check_if_valid_subspec(other, 'ConcatChart')
-        copy = self.copy()
-        copy.concat.append(other)
+        copy = self.copy(deep=['concat'])
+        copy |= other
         return copy
-
-    # TODO: think about the most useful class API here
 
 
 def concat(*charts, **kwargs):
@@ -1727,19 +1775,18 @@ class HConcatChart(TopLevelMixin, core.TopLevelHConcatSpec):
         for spec in hconcat:
             _check_if_valid_subspec(spec, 'HConcatChart')
         super(HConcatChart, self).__init__(data=data, hconcat=list(hconcat), **kwargs)
+        self.data, self.hconcat = _combine_subchart_data(self.data, self.hconcat)
 
     def __ior__(self, other):
         _check_if_valid_subspec(other, 'HConcatChart')
         self.hconcat.append(other)
+        self.data, self.hconcat = _combine_subchart_data(self.data, self.hconcat)
         return self
 
     def __or__(self, other):
-        _check_if_valid_subspec(other, 'HConcatChart')
-        copy = self.copy()
-        copy.hconcat.append(other)
+        copy = self.copy(deep=['hconcat'])
+        copy |= other
         return copy
-
-    # TODO: think about the most useful class API here
 
 
 def hconcat(*charts, **kwargs):
@@ -1755,19 +1802,18 @@ class VConcatChart(TopLevelMixin, core.TopLevelVConcatSpec):
         for spec in vconcat:
             _check_if_valid_subspec(spec, 'VConcatChart')
         super(VConcatChart, self).__init__(data=data, vconcat=list(vconcat), **kwargs)
+        self.data, self.vconcat = _combine_subchart_data(self.data, self.vconcat)
 
     def __iand__(self, other):
         _check_if_valid_subspec(other, 'VConcatChart')
         self.vconcat.append(other)
+        self.data, self.vconcat = _combine_subchart_data(self.data, self.vconcat)
         return self
 
     def __and__(self, other):
-        _check_if_valid_subspec(other, 'VConcatChart')
-        copy = self.copy()
-        copy.vconcat.append(other)
+        copy = self.copy(deep=['vconcat'])
+        copy &= other
         return copy
-
-    # TODO: think about the most useful class API here
 
 
 def vconcat(*charts, **kwargs):
@@ -1776,27 +1822,32 @@ def vconcat(*charts, **kwargs):
 
 
 @utils.use_signature(core.TopLevelLayerSpec)
-class LayerChart(TopLevelMixin, EncodingMixin, core.TopLevelLayerSpec):
+class LayerChart(TopLevelMixin, EncodingMixin, mixins.MarkMethodMixin,
+                 core.TopLevelLayerSpec):
     """A Chart with layers within a single panel"""
     def __init__(self, data=Undefined, layer=(), **kwargs):
         # TODO: move common data to top level?
         # TODO: check for conflicting interaction
         for spec in layer:
             _check_if_valid_subspec(spec, 'LayerChart')
+            _check_if_can_be_layered(spec)
         super(LayerChart, self).__init__(data=data, layer=list(layer), **kwargs)
+        self.data, self.layer = _combine_subchart_data(self.data, self.layer)
 
     def __iadd__(self, other):
         _check_if_valid_subspec(other, 'LayerChart')
+        _check_if_can_be_layered(other)
         self.layer.append(other)
+        self.data, self.layer = _combine_subchart_data(self.data, self.layer)
         return self
 
     def __add__(self, other):
-        copy = self.copy()
-        copy.layer.append(other)
+        copy = self.copy(deep=['layer'])
+        copy += other
         return copy
 
     def add_layers(self, *layers):
-        copy = self.copy()
+        copy = self.copy(deep=['layer'])
         for layer in layers:
             copy += layer
         return copy
@@ -1823,23 +1874,9 @@ class LayerChart(TopLevelMixin, EncodingMixin, core.TopLevelLayerSpec):
         if not self.layer:
             raise ValueError("LayerChart: cannot call interactive() until a "
                              "layer is defined")
-        copy = self.copy()
+        copy = self.copy(deep=['layer'])
         copy.layer[0] = copy.layer[0].interactive(name=name, bind_x=bind_x, bind_y=bind_y)
         return copy
-
-    def facet(self, row=Undefined, column=Undefined, data=Undefined, **kwargs):
-        """Create a facet chart from the current chart.
-
-        Faceted charts require data to be specified at the top level; if data
-        is not specified, the data from the current chart will be used at the
-        top level.
-        """
-        if data is Undefined:
-            data = self.data
-            self = self.copy()
-            self.data = Undefined
-        return FacetChart(spec=self, facet=FacetMapping(row=row, column=column),
-                          data=data, **kwargs)
 
 
 def layer(*charts, **kwargs):
@@ -1873,7 +1910,7 @@ class FacetChart(TopLevelMixin, core.TopLevelFacetSpec):
             copy of self, with interactive axes added
 
         """
-        copy = self.copy()
+        copy = self.copy(deep=False)
         copy.spec = copy.spec.interactive(name=name, bind_x=bind_x, bind_y=bind_y)
         return copy
 
@@ -1897,3 +1934,29 @@ def topo_feature(url, feature, **kwargs):
     """
     return core.UrlData(url=url, format=core.TopoDataFormat(type='topojson',
                                                          feature=feature, **kwargs))
+
+
+def _combine_subchart_data(data, subcharts):
+    def remove_data(subchart):
+        if subchart.data is not Undefined:
+            subchart = subchart.copy()
+            subchart.data = Undefined
+        return subchart
+
+    if not subcharts:
+        # No subcharts = nothing to do.
+        pass
+    elif data is Undefined:
+        # Top level has no data; all subchart data must
+        # be identical to proceed.
+        subdata = subcharts[0].data
+        if subdata is not Undefined and all(c.data is subdata for c in subcharts):
+            data = subdata
+            subcharts = [remove_data(c) for c in subcharts]
+    else:
+        # Top level has data; subchart data must be either
+        # undefined or identical to proceed.
+        if all(c.data is Undefined or c.data is data for c in subcharts):
+            subcharts = [remove_data(c) for c in subcharts]
+
+    return data, subcharts

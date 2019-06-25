@@ -45,9 +45,9 @@ Position Channels:
 ==========  ===================  =================================  ===================================
 Channel     Altair Class         Description                        Example
 ==========  ===================  =================================  ===================================
-x           :class:`X`           The x-axis value                   :ref:`gallery_simple_scatter`
-y           :class:`Y`           The y-axis value                   :ref:`gallery_simple_scatter`
-x2          :class:`X2`          Second x value for ranges          :ref:`gallery_error_bars_with_ci`
+x           :class:`X`           The x-axis value                   :ref:`gallery_scatter_tooltips`
+y           :class:`Y`           The y-axis value                   :ref:`gallery_scatter_tooltips`
+x2          :class:`X2`          Second x value for ranges          :ref:`gallery_errorbars_with_ci`
 y2          :class:`Y2`          Second y value for ranges          :ref:`gallery_line_with_ci`
 longitude   :class:`Longitude`   Longitude for geo charts           :ref:`gallery_airports`
 latitude    :class:`Latitude`    Latitude for geo charts            :ref:`gallery_airports`
@@ -61,16 +61,19 @@ yerror2     :class:`YError2`     The second y-axis error value      N/A
 
 Mark Property Channels:
 
-=======  ================  ========================  =========================================
-Channel  Altair Class      Description               Example
-=======  ================  ========================  =========================================
-color    :class:`Color`    The color of the mark     :ref:`gallery_simple_heatmap`
-fill     :class:`Fill`     The fill for the mark     N/A
-opacity  :class:`Opacity`  The opacity of the mark   :ref:`gallery_horizon_graph`
-shape    :class:`Shape`    The shape of the mark     N/A
-size     :class:`Size`     The size of the mark      :ref:`gallery_table_bubble_plot_github`
-stroke   :class:`Stroke`   The stroke of the mark    N/A
-=======  ================  ========================  =========================================
+=============  ======================  ==============================  =========================================
+Channel        Altair Class            Description                     Example
+=============  ======================  ==============================  =========================================
+color          :class:`Color`          The color of the mark           :ref:`gallery_simple_heatmap`
+fill           :class:`Fill`           The fill for the mark           N/A
+fillopacity    :class:`FillOpacity`    The opacity of the mark's fill  N/A
+opacity        :class:`Opacity`        The opacity of the mark         :ref:`gallery_horizon_graph`
+shape          :class:`Shape`          The shape of the mark           N/A
+size           :class:`Size`           The size of the mark            :ref:`gallery_table_bubble_plot_github`
+stroke         :class:`Stroke`         The stroke of the mark          N/A
+strokeopacity  :class:`StrokeOpacity`  The opacity of the line         N/A
+strokewidth    :class:`StrokeWidth`    The width of the line           N/A
+=============  ======================  ==============================  =========================================
 
 Text and Tooltip Channels:
 
@@ -95,7 +98,7 @@ Level of Detail Channel:
 =======  ================  ===============================  =========================================
 Channel  Altair Class      Description                      Example
 =======  ================  ===============================  =========================================
-detail   :class:`Detail`   Additional property to group by  :ref:`gallery_select_detail`
+detail   :class:`Detail`   Additional property to group by  :ref:`gallery_ranged_dot_plot`
 =======  ================  ===============================  =========================================
 
 Order Channel:
@@ -264,14 +267,14 @@ The :class:`X` and :class:`Y` encodings accept the following options:
 
 The :class:`Color`, :class:`Fill`, and :class:`Stroke`  encodings accept the following options:
 
-.. altair-object-table:: altair.ColorFieldDefWithCondition
+.. altair-object-table:: altair.StringFieldDefWithCondition
 
 The :class:`Shape` encoding accepts the following options:
 
 .. altair-object-table:: altair.ShapeFieldDefWithCondition
 
-The :class:`Fillopacity`, :class:`Opacity`, :class:`Size`, :class:`StrokeOpacity`,
-and :class:`Strokewidth` encodings accept the following options:
+The :class:`FillOpacity`, :class:`Opacity`, :class:`Size`, :class:`StrokeOpacity`,
+and :class:`StrokeWidth` encodings accept the following options:
 
 .. altair-object-table:: altair.NumericFieldDefWithCondition
 
@@ -283,27 +286,22 @@ The :class:`Text` and :class:`Tooltip` encodings accept the following options:
 
 .. altair-object-table:: altair.TextFieldDefWithCondition
 
-The :class:`Fillopacity`, :class:`Opacity`, :class:`Size`, :class:`Strokeopacity`,
-and :class:`Strokewidth` encodings accept the following options:
-
-.. altair-object-table:: altair.NumericFieldDefWithCondition
-
 The :class:`Detail` and :class:`Key` encodings accept the following options:
 
-.. altair-object-table:: altair.FieldDef
+.. altair-object-table:: altair.FieldDefWithoutScale
 
 The :class:`Latitude` and :class:`Longitude` encodings accept the following options:
 
 .. altair-object-table:: altair.LatLongFieldDef
 
-The :class:`Latitude2`, :class:`Longitude2`, :class:`X2`, :class:`Y2`, :class:`Xerror`, :class:`Yerror`,
-:class:`Xerror2`, and :class:`Yerror2` encodings accept the following options:
+The :class:`Latitude2`, :class:`Longitude2`, :class:`X2`, :class:`Y2`, :class:`XError`, :class:`YError`,
+:class:`XError2`, and :class:`YError2` encodings accept the following options:
 
 .. altair-object-table:: altair.SecondaryFieldDef
 
 The :class:`Href` encoding accepts the following options:
 
-.. altair-object-table:: altair.StringFieldDefWithCondition
+.. altair-object-table:: altair.TextFieldDefWithCondition
 
 The :class:`Order` encoding accepts the following options:
 
@@ -377,14 +375,14 @@ average    The mean (average) field value. Identical to mean.                   
 count      The total count of data objects in the group.                                :ref:`gallery_simple_heatmap`
 distinct   The count of distinct field values.                                          N/A
 max        The maximum field value.                                                     :ref:`gallery_boxplot_max_min`
-mean       The mean (average) field value.                                              :ref:`gallery_layered_plot_with_dual_axis`
+mean       The mean (average) field value.                                              :ref:`gallery_scatter_with_layered_histogram`
 median     The median field value                                                       :ref:`gallery_boxplot_max_min`
 min        The minimum field value.                                                     :ref:`gallery_boxplot_max_min`
 missing    The count of null or undefined field values.                                 N/A
 q1         The lower quartile boundary of values.                                       :ref:`gallery_boxplot_max_min`
 q3         The upper quartile boundary of values.                                       :ref:`gallery_boxplot_max_min`
-ci0        The lower boundary of the bootstrapped 95% confidence interval of the mean.  :ref:`gallery_error_bars_with_ci`
-ci1        The upper boundary of the bootstrapped 95% confidence interval of the mean.  :ref:`gallery_error_bars_with_ci`
+ci0        The lower boundary of the bootstrapped 95% confidence interval of the mean.  :ref:`gallery_sorted_error_bars_with_ci`
+ci1        The upper boundary of the bootstrapped 95% confidence interval of the mean.  :ref:`gallery_sorted_error_bars_with_ci`
 stderr     The standard error of the field values.                                      N/A
 stdev      The sample standard deviation of field values.                               N/A
 stdevp     The population standard deviation of field values.                           N/A

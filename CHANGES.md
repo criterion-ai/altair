@@ -1,8 +1,79 @@
 # Altair Change Log
 
-## Version 3.0.0rc1 (prerelease)
+## Version 3.2.0 (unreleased)
+### Enhancements
+### Bug Fixes
+### Backward-Incompatible Changes
 
-Update to Vega-Lite 3.0 and Vega 5.0 & support all new features. See
+## Version 3.1.0  (Released June 6, 2019)
+
+Update includes full compatibility with version 3.3 of Vega-Lite.
+
+### Enhancements
+
+- Added support for [vega themes](https://github.com/vega/vega-themes) via
+  ``alt.themes.enable(theme_name)`` (#1539)
+
+- Added an ``alt.renderers.disable_max_rows()`` method for disabling the
+  maximum rows check (#1538)
+
+- Improved user-facing warnings/errors around layering and faceting (#1535).
+
+- ``data`` argument is now properly handled by  ``Chart.properties`` (#1525)
+
+- Compound charts (layer, concat, hconcat, vconcat) now move data to the top
+  level by default. In particular, this means that the ``facet()`` method
+  can now be called directly on a layered chart without having to change
+  how data is specified. (#1521)
+
+- ``alt.LayerChart`` now supports ``mark_*()`` methods. If a layer specifies a
+  mark at the top level, all child charts will inherit it (unless they override
+  it explicitly).
+
+- ``alt.Chart.facet()`` now handles wrapped facets; for example:
+  ```python
+  chart.facet('column_name', columns=5)
+  ```
+  See ``altair/examples/us_population_over_time_facet.py`` for a more
+  complete example.
+
+### Bug fixes
+
+- Make ``chart.serve()`` and ``chart.save()`` respect the data transformer
+  setting (#1538)
+
+- Fixed a deserialization bug for certain chart specs in schemapi (#1543)
+
+### Backward-Incompatible Changes
+
+- ``alt.Chart.facet()`` now accepts a wrapped facet encoding as a first positional
+   argument, rather than a row encoding. The following are examples of old invocations,
+   and the equivalent new invocations:
+
+   - ``chart.facet(row='col1', column='col2')``: unchanged
+   - ``chart.facet('col1', 'col2')``: change to ``chart.facet(row='col1', column='col2')``
+   - ``chart.facet('col1')``: change to ``chart.facet(row='col1')``
+
+   In each case, the new invocations are compatible back to Altair 2.X.
+
+- Several of the encoding channels added in 3.0 have had their capitalization
+  corrected to better match the names used in the schema:
+
+  - ``alt.Fillopacity`` -> ``alt.FillOpacity``
+  - ``alt.Strokeopacity`` -> ``alt.StrokeOpacity``
+  - ``alt.Strokewidth`` -> ``alt.StrokeWidth``
+  - ``alt.Xerror`` -> ``alt.XError``
+  - ``alt.Xerror2`` -> ``alt.XError2``
+  - ``alt.Yerror`` -> ``alt.YError``
+  - ``alt.Yerror2`` -> ``alt.YError2``
+
+## Version 3.0.1 (Released May 1, 2019)
+
+Fix version info bug for HTML output and Colab & Kaggle renderers.
+
+## Version 3.0.0 (Released April 26, 2019)
+
+Update to Vega-Lite 3.2 and Vega 5.3 & support all new features. See
 https://github.com/vega/vega-lite/releases/tag/v3.0.0 for Vega-Lite
 feature lists.
 
@@ -11,8 +82,14 @@ feature lists.
 - new compound marks: ``mark_boxplot()``, ``mark_errorband()``, ``mark_errorbar()``
 - new transforms: ``transform_impute()``, ``transform_joinaggregate()``, ``transform_flatten()``
   ``transform_fold()``, ``transform_sample()``, ``transform_stack()``
-- tooltips enabled by default. Pass encoding ``tooltip=None`` to disable.
-- new ``columns`` keyword that allows wrapped faceting and concatenation.
+- new ``facet`` encoding that is similar to the ``row`` and ``column`` encoding, but
+  allows for wrapped facets
+- new ``alt.concat()`` function that is similar to ``alt.hconcat`` and ``alt.vconcat``,
+  but allows for more general wrapped concatenation
+- new ``columns`` keyword that allows wrapped faceting, repeating, and concatenation.
+- many, many bug fixes
+- tooltips can now be automatically populated using the ``tooltip`` mark configuration.
+- ability to specify initial condisions for selections
 
 ## Version 2.4.1 (Released February 21, 2019)
 

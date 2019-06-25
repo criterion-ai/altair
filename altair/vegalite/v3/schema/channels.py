@@ -72,14 +72,14 @@ class ValueChannelMixin(object):
                 pass
             elif 'field' in condition and 'type' not in condition:
                 kwds = parse_shorthand(condition['field'], context.get('data', None))
-                copy = self.copy()
+                copy = self.copy(deep=['condition'])
                 copy.condition.update(kwds)
         return super(ValueChannelMixin, copy).to_dict(validate=validate,
                                                       ignore=ignore,
                                                       context=context)
 
 
-class Color(FieldChannelMixin, core.ColorFieldDefWithCondition):
+class Color(FieldChannelMixin, core.StringFieldDefWithCondition):
     """Color schema wrapper
 
     Mapping(required=[shorthand])
@@ -95,7 +95,7 @@ class Color(FieldChannelMixin, core.ColorFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -113,8 +113,8 @@ class Color(FieldChannelMixin, core.ColorFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/axis.html#ticks>`__ property.
 
         **Default value:** ``false``
-    condition : anyOf(:class:`ConditionalColorValueDef`,
-    List(:class:`ConditionalColorValueDef`))
+    condition : anyOf(:class:`ConditionalStringValueDef`,
+    List(:class:`ConditionalStringValueDef`))
         One or more value definition(s) with `a selection or a test predicate
         <https://vega.github.io/vega-lite/docs/condition.html>`__.
 
@@ -252,7 +252,7 @@ class Color(FieldChannelMixin, core.ColorFieldDefWithCondition):
                                     sort=sort, timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
-class ColorValue(ValueChannelMixin, core.ColorValueDefWithCondition):
+class ColorValue(ValueChannelMixin, core.StringValueDefWithCondition):
     """ColorValue schema wrapper
 
     anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefstringnull`,
@@ -281,7 +281,7 @@ class Column(FieldChannelMixin, core.FacetFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -368,7 +368,7 @@ class Column(FieldChannelMixin, core.FacetFieldDef):
 
         2) If both field definition's ``title`` and axis, header, or legend ``title`` are
         defined, axis/header/legend title will be used.
-    type : :class:`Type`
+    type : :class:`StandardType`
         The encoded field's type of measurement ( ``"quantitative"``, ``"temporal"``,
         ``"ordinal"``, or ``"nominal"`` ).
         It can also be a ``"geojson"`` type for encoding `'geoshape'
@@ -412,11 +412,11 @@ class Column(FieldChannelMixin, core.FacetFieldDef):
                                      type=type, **kwds)
 
 
-class Detail(FieldChannelMixin, core.FieldDef):
+class Detail(FieldChannelMixin, core.FieldDefWithoutScale):
     """Detail schema wrapper
 
     Mapping(required=[shorthand])
-    Field Def without scale (and without bin: "binned" support).
+    Definition object for a data field, its type and transformation of an encoding channel.
 
     Attributes
     ----------
@@ -544,7 +544,7 @@ class Facet(FieldChannelMixin, core.FacetFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -631,7 +631,7 @@ class Facet(FieldChannelMixin, core.FacetFieldDef):
 
         2) If both field definition's ``title`` and axis, header, or legend ``title`` are
         defined, axis/header/legend title will be used.
-    type : :class:`Type`
+    type : :class:`StandardType`
         The encoded field's type of measurement ( ``"quantitative"``, ``"temporal"``,
         ``"ordinal"``, or ``"nominal"`` ).
         It can also be a ``"geojson"`` type for encoding `'geoshape'
@@ -675,7 +675,7 @@ class Facet(FieldChannelMixin, core.FacetFieldDef):
                                     **kwds)
 
 
-class Fill(FieldChannelMixin, core.ColorFieldDefWithCondition):
+class Fill(FieldChannelMixin, core.StringFieldDefWithCondition):
     """Fill schema wrapper
 
     Mapping(required=[shorthand])
@@ -691,7 +691,7 @@ class Fill(FieldChannelMixin, core.ColorFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -709,8 +709,8 @@ class Fill(FieldChannelMixin, core.ColorFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/axis.html#ticks>`__ property.
 
         **Default value:** ``false``
-    condition : anyOf(:class:`ConditionalColorValueDef`,
-    List(:class:`ConditionalColorValueDef`))
+    condition : anyOf(:class:`ConditionalStringValueDef`,
+    List(:class:`ConditionalStringValueDef`))
         One or more value definition(s) with `a selection or a test predicate
         <https://vega.github.io/vega-lite/docs/condition.html>`__.
 
@@ -848,7 +848,7 @@ class Fill(FieldChannelMixin, core.ColorFieldDefWithCondition):
                                    sort=sort, timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
-class FillValue(ValueChannelMixin, core.ColorValueDefWithCondition):
+class FillValue(ValueChannelMixin, core.StringValueDefWithCondition):
     """FillValue schema wrapper
 
     anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefstringnull`,
@@ -862,8 +862,8 @@ class FillValue(ValueChannelMixin, core.ColorValueDefWithCondition):
         super(FillValue, self).__init__(value=value, **kwds)
 
 
-class Fillopacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
-    """Fillopacity schema wrapper
+class FillOpacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
+    """FillOpacity schema wrapper
 
     Mapping(required=[shorthand])
     A FieldDef with Condition :raw-html:`<ValueDef>`
@@ -878,7 +878,7 @@ class Fillopacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -1030,13 +1030,13 @@ class Fillopacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, condition=Undefined,
                  field=Undefined, legend=Undefined, scale=Undefined, sort=Undefined, timeUnit=Undefined,
                  title=Undefined, type=Undefined, **kwds):
-        super(Fillopacity, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
+        super(FillOpacity, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
                                           condition=condition, field=field, legend=legend, scale=scale,
                                           sort=sort, timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
-class FillopacityValue(ValueChannelMixin, core.NumericValueDefWithCondition):
-    """FillopacityValue schema wrapper
+class FillOpacityValue(ValueChannelMixin, core.NumericValueDefWithCondition):
+    """FillOpacityValue schema wrapper
 
     anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefnumber`,
     :class:`ConditionOnlyDefMarkPropFieldDef`)
@@ -1046,10 +1046,10 @@ class FillopacityValue(ValueChannelMixin, core.NumericValueDefWithCondition):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(FillopacityValue, self).__init__(value=value, **kwds)
+        super(FillOpacityValue, self).__init__(value=value, **kwds)
 
 
-class Href(FieldChannelMixin, core.StringFieldDefWithCondition):
+class Href(FieldChannelMixin, core.TextFieldDefWithCondition):
     """Href schema wrapper
 
     Mapping(required=[shorthand])
@@ -1083,8 +1083,7 @@ class Href(FieldChannelMixin, core.StringFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/axis.html#ticks>`__ property.
 
         **Default value:** ``false``
-    condition : anyOf(:class:`ConditionalStringValueDef`,
-    List(:class:`ConditionalStringValueDef`))
+    condition : anyOf(:class:`ConditionalValueDef`, List(:class:`ConditionalValueDef`))
         One or more value definition(s) with `a selection or a test predicate
         <https://vega.github.io/vega-lite/docs/condition.html>`__.
 
@@ -1105,52 +1104,33 @@ class Href(FieldChannelMixin, core.StringFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/field.html>`__.
 
         **Note:** ``field`` is not required if ``aggregate`` is ``count``.
-    legend : anyOf(:class:`Legend`, None)
-        An object defining properties of the legend.
-        If ``null``, the legend for the encoding channel will be removed.
-
-        **Default value:** If undefined, default `legend properties
-        <https://vega.github.io/vega-lite/docs/legend.html>`__ are applied.
-    scale : anyOf(:class:`Scale`, None)
-        An object defining properties of the channel's scale, which is the function that
-        transforms values in the data domain (numbers, dates, strings, etc) to visual values
-        (pixels, colors, sizes) of the encoding channels.
-
-        If ``null``, the scale will be `disabled and the data value will be directly encoded
-        <https://vega.github.io/vega-lite/docs/scale.html#disable>`__.
-
-        **Default value:** If undefined, default `scale properties
-        <https://vega.github.io/vega-lite/docs/scale.html>`__ are applied.
-    sort : :class:`Sort`
-        Sort order for the encoded field.
-
-        For continuous fields (quantitative or temporal), ``sort`` can be either
-        ``"ascending"`` or ``"descending"``.
-
-        For discrete fields, ``sort`` can be one of the following:
+    format : string
+        The text formatting pattern for labels of guides (axes, legends, headers) and text
+        marks.
 
 
-        * ``"ascending"`` or ``"descending"`` -- for sorting by the values' natural order in
-          Javascript.
-        * `A sort-by-encoding definition
-          <https://vega.github.io/vega-lite/docs/sort.html#sort-by-encoding>`__ for sorting
-          by another encoding channel. (This type of sort definition is not available for
-          ``row`` and ``column`` channels.)
-        * `A sort field definition
-          <https://vega.github.io/vega-lite/docs/sort.html#sort-field>`__ for sorting by
-          another field.
-        * `An array specifying the field values in preferred order
-          <https://vega.github.io/vega-lite/docs/sort.html#sort-array>`__. In this case, the
-          sort order will obey the values in the array, followed by any unspecified values
-          in their original order.  For discrete time field, values in the sort array can be
-          `date-time definition objects <types#datetime>`__. In addition, for time units
-          ``"month"`` and ``"day"``, the values can be the month or day names (case
-          insensitive) or their 3-letter initials (e.g., ``"Mon"``, ``"Tue"`` ).
-        * ``null`` indicating no sort.
+        * If the format type is ``"number"`` (e.g., for quantitative fields), this is D3's
+          `number format pattern <https://github.com/d3/d3-format#locale_format>`__.
+        * If the format type is ``"time"`` (e.g., for temporal fields), this is D3's `time
+          format pattern <https://github.com/d3/d3-time-format#locale_format>`__.
 
-        **Default value:** ``"ascending"``
+        See the `format documentation <https://vega.github.io/vega-lite/docs/format.html>`__
+        for more examples.
 
-        **Note:** ``null`` is not supported for ``row`` and ``column``.
+        **Default value:**  Derived from `numberFormat
+        <https://vega.github.io/vega-lite/docs/config.html#format>`__ config for number
+        format and from `timeFormat
+        <https://vega.github.io/vega-lite/docs/config.html#format>`__ config for time
+        format.
+    formatType : enum('number', 'time')
+        The format type for labels ( ``"number"`` or ``"time"`` ).
+
+        **Default value:**
+
+
+        * ``"time"`` for temporal fields and ordinal and nomimal fields with ``timeUnit``.
+        * ``"number"`` for quantitative fields as well as ordinal and nomimal fields without
+          ``timeUnit``.
     timeUnit : :class:`TimeUnit`
         Time unit (e.g., ``year``, ``yearmonth``, ``month``, ``hours`` ) for a temporal
         field.
@@ -1178,7 +1158,7 @@ class Href(FieldChannelMixin, core.StringFieldDefWithCondition):
 
         2) If both field definition's ``title`` and axis, header, or legend ``title`` are
         defined, axis/header/legend title will be used.
-    type : enum('nominal')
+    type : :class:`StandardType`
         The encoded field's type of measurement ( ``"quantitative"``, ``"temporal"``,
         ``"ordinal"``, or ``"nominal"`` ).
         It can also be a ``"geojson"`` type for encoding `'geoshape'
@@ -1215,18 +1195,19 @@ class Href(FieldChannelMixin, core.StringFieldDefWithCondition):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, condition=Undefined,
-                 field=Undefined, legend=Undefined, scale=Undefined, sort=Undefined, timeUnit=Undefined,
+                 field=Undefined, format=Undefined, formatType=Undefined, timeUnit=Undefined,
                  title=Undefined, type=Undefined, **kwds):
         super(Href, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
-                                   condition=condition, field=field, legend=legend, scale=scale,
-                                   sort=sort, timeUnit=timeUnit, title=title, type=type, **kwds)
+                                   condition=condition, field=field, format=format,
+                                   formatType=formatType, timeUnit=timeUnit, title=title, type=type,
+                                   **kwds)
 
 
-class HrefValue(ValueChannelMixin, core.StringValueDefWithCondition):
+class HrefValue(ValueChannelMixin, core.TextValueDefWithCondition):
     """HrefValue schema wrapper
 
-    anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefnominalstring`,
-    :class:`ConditionOnlyDefMarkPropFieldDefnominal`)
+    anyOf(:class:`ValueDefWithOptionalConditionTextFieldDefValue`,
+    :class:`ConditionOnlyDefTextFieldDef`)
     A ValueDef with Condition<ValueDef | FieldDef> where either the conition or the value are
     optional.
     """
@@ -1236,11 +1217,11 @@ class HrefValue(ValueChannelMixin, core.StringValueDefWithCondition):
         super(HrefValue, self).__init__(value=value, **kwds)
 
 
-class Key(FieldChannelMixin, core.FieldDef):
+class Key(FieldChannelMixin, core.FieldDefWithoutScale):
     """Key schema wrapper
 
     Mapping(required=[shorthand])
-    Field Def without scale (and without bin: "binned" support).
+    Definition object for a data field, its type and transformation of an encoding channel.
 
     Attributes
     ----------
@@ -1368,7 +1349,7 @@ class Latitude(FieldChannelMixin, core.LatLongFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -1469,6 +1450,25 @@ class Latitude(FieldChannelMixin, core.LatLongFieldDef):
                                        timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
+class LatitudeValue(ValueChannelMixin, core.NumberValueDef):
+    """LatitudeValue schema wrapper
+
+    Mapping(required=[value])
+    Definition object for a constant value of an encoding channel.
+
+    Attributes
+    ----------
+
+    value : float
+        A constant value in visual domain (e.g., ``"red"`` / "#0099ff" for color, values
+        between ``0`` to ``1`` for opacity).
+    """
+    _class_is_valid_at_instantiation = False
+
+    def __init__(self, value, **kwds):
+        super(LatitudeValue, self).__init__(value=value, **kwds)
+
+
 class Latitude2(FieldChannelMixin, core.SecondaryFieldDef):
     """Latitude2 schema wrapper
 
@@ -1486,7 +1486,7 @@ class Latitude2(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -1554,6 +1554,25 @@ class Latitude2(FieldChannelMixin, core.SecondaryFieldDef):
                                         timeUnit=timeUnit, title=title, **kwds)
 
 
+class Latitude2Value(ValueChannelMixin, core.NumberValueDef):
+    """Latitude2Value schema wrapper
+
+    Mapping(required=[value])
+    Definition object for a constant value of an encoding channel.
+
+    Attributes
+    ----------
+
+    value : float
+        A constant value in visual domain (e.g., ``"red"`` / "#0099ff" for color, values
+        between ``0`` to ``1`` for opacity).
+    """
+    _class_is_valid_at_instantiation = False
+
+    def __init__(self, value, **kwds):
+        super(Latitude2Value, self).__init__(value=value, **kwds)
+
+
 class Longitude(FieldChannelMixin, core.LatLongFieldDef):
     """Longitude schema wrapper
 
@@ -1569,7 +1588,7 @@ class Longitude(FieldChannelMixin, core.LatLongFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -1670,6 +1689,25 @@ class Longitude(FieldChannelMixin, core.LatLongFieldDef):
                                         timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
+class LongitudeValue(ValueChannelMixin, core.NumberValueDef):
+    """LongitudeValue schema wrapper
+
+    Mapping(required=[value])
+    Definition object for a constant value of an encoding channel.
+
+    Attributes
+    ----------
+
+    value : float
+        A constant value in visual domain (e.g., ``"red"`` / "#0099ff" for color, values
+        between ``0`` to ``1`` for opacity).
+    """
+    _class_is_valid_at_instantiation = False
+
+    def __init__(self, value, **kwds):
+        super(LongitudeValue, self).__init__(value=value, **kwds)
+
+
 class Longitude2(FieldChannelMixin, core.SecondaryFieldDef):
     """Longitude2 schema wrapper
 
@@ -1687,7 +1725,7 @@ class Longitude2(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -1755,6 +1793,25 @@ class Longitude2(FieldChannelMixin, core.SecondaryFieldDef):
                                          timeUnit=timeUnit, title=title, **kwds)
 
 
+class Longitude2Value(ValueChannelMixin, core.NumberValueDef):
+    """Longitude2Value schema wrapper
+
+    Mapping(required=[value])
+    Definition object for a constant value of an encoding channel.
+
+    Attributes
+    ----------
+
+    value : float
+        A constant value in visual domain (e.g., ``"red"`` / "#0099ff" for color, values
+        between ``0`` to ``1`` for opacity).
+    """
+    _class_is_valid_at_instantiation = False
+
+    def __init__(self, value, **kwds):
+        super(Longitude2Value, self).__init__(value=value, **kwds)
+
+
 class Opacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
     """Opacity schema wrapper
 
@@ -1771,7 +1828,7 @@ class Opacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -2094,7 +2151,7 @@ class Row(FieldChannelMixin, core.FacetFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -2181,7 +2238,7 @@ class Row(FieldChannelMixin, core.FacetFieldDef):
 
         2) If both field definition's ``title`` and axis, header, or legend ``title`` are
         defined, axis/header/legend title will be used.
-    type : :class:`Type`
+    type : :class:`StandardType`
         The encoded field's type of measurement ( ``"quantitative"``, ``"temporal"``,
         ``"ordinal"``, or ``"nominal"`` ).
         It can also be a ``"geojson"`` type for encoding `'geoshape'
@@ -2241,7 +2298,7 @@ class Shape(FieldChannelMixin, core.ShapeFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -2401,7 +2458,7 @@ class Shape(FieldChannelMixin, core.ShapeFieldDefWithCondition):
 class ShapeValue(ValueChannelMixin, core.ShapeValueDefWithCondition):
     """ShapeValue schema wrapper
 
-    anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefTypeForShapestring`,
+    anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefTypeForShapestringnull`,
     :class:`ConditionOnlyDefMarkPropFieldDefTypeForShape`)
     A ValueDef with Condition<ValueDef | FieldDef> where either the conition or the value are
     optional.
@@ -2428,7 +2485,7 @@ class Size(FieldChannelMixin, core.NumericFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -2599,7 +2656,7 @@ class SizeValue(ValueChannelMixin, core.NumericValueDefWithCondition):
         super(SizeValue, self).__init__(value=value, **kwds)
 
 
-class Stroke(FieldChannelMixin, core.ColorFieldDefWithCondition):
+class Stroke(FieldChannelMixin, core.StringFieldDefWithCondition):
     """Stroke schema wrapper
 
     Mapping(required=[shorthand])
@@ -2615,7 +2672,7 @@ class Stroke(FieldChannelMixin, core.ColorFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -2633,8 +2690,8 @@ class Stroke(FieldChannelMixin, core.ColorFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/axis.html#ticks>`__ property.
 
         **Default value:** ``false``
-    condition : anyOf(:class:`ConditionalColorValueDef`,
-    List(:class:`ConditionalColorValueDef`))
+    condition : anyOf(:class:`ConditionalStringValueDef`,
+    List(:class:`ConditionalStringValueDef`))
         One or more value definition(s) with `a selection or a test predicate
         <https://vega.github.io/vega-lite/docs/condition.html>`__.
 
@@ -2772,7 +2829,7 @@ class Stroke(FieldChannelMixin, core.ColorFieldDefWithCondition):
                                      sort=sort, timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
-class StrokeValue(ValueChannelMixin, core.ColorValueDefWithCondition):
+class StrokeValue(ValueChannelMixin, core.StringValueDefWithCondition):
     """StrokeValue schema wrapper
 
     anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefstringnull`,
@@ -2786,8 +2843,8 @@ class StrokeValue(ValueChannelMixin, core.ColorValueDefWithCondition):
         super(StrokeValue, self).__init__(value=value, **kwds)
 
 
-class Strokeopacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
-    """Strokeopacity schema wrapper
+class StrokeOpacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
+    """StrokeOpacity schema wrapper
 
     Mapping(required=[shorthand])
     A FieldDef with Condition :raw-html:`<ValueDef>`
@@ -2802,7 +2859,7 @@ class Strokeopacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -2954,14 +3011,14 @@ class Strokeopacity(FieldChannelMixin, core.NumericFieldDefWithCondition):
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, condition=Undefined,
                  field=Undefined, legend=Undefined, scale=Undefined, sort=Undefined, timeUnit=Undefined,
                  title=Undefined, type=Undefined, **kwds):
-        super(Strokeopacity, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
+        super(StrokeOpacity, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
                                             condition=condition, field=field, legend=legend,
                                             scale=scale, sort=sort, timeUnit=timeUnit, title=title,
                                             type=type, **kwds)
 
 
-class StrokeopacityValue(ValueChannelMixin, core.NumericValueDefWithCondition):
-    """StrokeopacityValue schema wrapper
+class StrokeOpacityValue(ValueChannelMixin, core.NumericValueDefWithCondition):
+    """StrokeOpacityValue schema wrapper
 
     anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefnumber`,
     :class:`ConditionOnlyDefMarkPropFieldDef`)
@@ -2971,11 +3028,11 @@ class StrokeopacityValue(ValueChannelMixin, core.NumericValueDefWithCondition):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(StrokeopacityValue, self).__init__(value=value, **kwds)
+        super(StrokeOpacityValue, self).__init__(value=value, **kwds)
 
 
-class Strokewidth(FieldChannelMixin, core.NumericFieldDefWithCondition):
-    """Strokewidth schema wrapper
+class StrokeWidth(FieldChannelMixin, core.NumericFieldDefWithCondition):
+    """StrokeWidth schema wrapper
 
     Mapping(required=[shorthand])
     A FieldDef with Condition :raw-html:`<ValueDef>`
@@ -2990,7 +3047,7 @@ class Strokewidth(FieldChannelMixin, core.NumericFieldDefWithCondition):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : anyOf(boolean, :class:`BinParams`, None)
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -3142,13 +3199,13 @@ class Strokewidth(FieldChannelMixin, core.NumericFieldDefWithCondition):
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, condition=Undefined,
                  field=Undefined, legend=Undefined, scale=Undefined, sort=Undefined, timeUnit=Undefined,
                  title=Undefined, type=Undefined, **kwds):
-        super(Strokewidth, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
+        super(StrokeWidth, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin,
                                           condition=condition, field=field, legend=legend, scale=scale,
                                           sort=sort, timeUnit=timeUnit, title=title, type=type, **kwds)
 
 
-class StrokewidthValue(ValueChannelMixin, core.NumericValueDefWithCondition):
-    """StrokewidthValue schema wrapper
+class StrokeWidthValue(ValueChannelMixin, core.NumericValueDefWithCondition):
+    """StrokeWidthValue schema wrapper
 
     anyOf(:class:`ValueDefWithOptionalConditionMarkPropFieldDefnumber`,
     :class:`ConditionOnlyDefMarkPropFieldDef`)
@@ -3158,7 +3215,7 @@ class StrokewidthValue(ValueChannelMixin, core.NumericValueDefWithCondition):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(StrokewidthValue, self).__init__(value=value, **kwds)
+        super(StrokeWidthValue, self).__init__(value=value, **kwds)
 
 
 class Text(FieldChannelMixin, core.TextFieldDefWithCondition):
@@ -3195,7 +3252,7 @@ class Text(FieldChannelMixin, core.TextFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/axis.html#ticks>`__ property.
 
         **Default value:** ``false``
-    condition : anyOf(:class:`ConditionalTextValueDef`, List(:class:`ConditionalTextValueDef`))
+    condition : anyOf(:class:`ConditionalValueDef`, List(:class:`ConditionalValueDef`))
         One or more value definition(s) with `a selection or a test predicate
         <https://vega.github.io/vega-lite/docs/condition.html>`__.
 
@@ -3318,7 +3375,7 @@ class Text(FieldChannelMixin, core.TextFieldDefWithCondition):
 class TextValue(ValueChannelMixin, core.TextValueDefWithCondition):
     """TextValue schema wrapper
 
-    anyOf(:class:`ValueDefWithOptionalConditionTextFieldDefstringnumberboolean`,
+    anyOf(:class:`ValueDefWithOptionalConditionTextFieldDefValue`,
     :class:`ConditionOnlyDefTextFieldDef`)
     A ValueDef with Condition<ValueDef | FieldDef> where either the conition or the value are
     optional.
@@ -3363,7 +3420,7 @@ class Tooltip(FieldChannelMixin, core.TextFieldDefWithCondition):
         <https://vega.github.io/vega-lite/docs/axis.html#ticks>`__ property.
 
         **Default value:** ``false``
-    condition : anyOf(:class:`ConditionalTextValueDef`, List(:class:`ConditionalTextValueDef`))
+    condition : anyOf(:class:`ConditionalValueDef`, List(:class:`ConditionalValueDef`))
         One or more value definition(s) with `a selection or a test predicate
         <https://vega.github.io/vega-lite/docs/condition.html>`__.
 
@@ -3486,7 +3543,7 @@ class Tooltip(FieldChannelMixin, core.TextFieldDefWithCondition):
 class TooltipValue(ValueChannelMixin, core.TextValueDefWithCondition):
     """TooltipValue schema wrapper
 
-    anyOf(:class:`ValueDefWithOptionalConditionTextFieldDefstringnumberboolean`,
+    anyOf(:class:`ValueDefWithOptionalConditionTextFieldDefValue`,
     :class:`ConditionOnlyDefTextFieldDef`)
     A ValueDef with Condition<ValueDef | FieldDef> where either the conition or the value are
     optional.
@@ -3596,7 +3653,7 @@ class X(FieldChannelMixin, core.PositionFieldDef):
         **Default value:** ``"ascending"``
 
         **Note:** ``null`` is not supported for ``row`` and ``column``.
-    stack : anyOf(:class:`StackOffset`, None)
+    stack : anyOf(:class:`StackOffset`, None, boolean)
         Type of stacking offset if the field should be stacked.
         ``stack`` is only applicable for ``x`` and ``y`` channels with continuous domains.
         For example, ``stack`` of ``y`` can be used to customize stacking for a vertical bar
@@ -3605,16 +3662,17 @@ class X(FieldChannelMixin, core.PositionFieldDef):
         ``stack`` can be one of the following values:
 
 
-        * `"zero"`: stacking with baseline offset at zero value of the scale (for creating
-          typical stacked [bar](https://vega.github.io/vega-lite/docs/stack.html#bar) and
-          `area <https://vega.github.io/vega-lite/docs/stack.html#area>`__ chart).
+        * ``"zero"`` or `true`: stacking with baseline offset at zero value of the scale
+          (for creating typical stacked
+          [bar](https://vega.github.io/vega-lite/docs/stack.html#bar) and `area
+          <https://vega.github.io/vega-lite/docs/stack.html#area>`__ chart).
         * ``"normalize"`` - stacking with normalized domain (for creating `normalized
           stacked bar and area charts
           <https://vega.github.io/vega-lite/docs/stack.html#normalized>`__.
           :raw-html:`<br/>`
         - ``"center"`` - stacking with center baseline (for `streamgraph
         <https://vega.github.io/vega-lite/docs/stack.html#streamgraph>`__ ).
-        * ``null`` - No-stacking. This will produce layered `bar
+        * ``null`` or ``false`` - No-stacking. This will produce layered `bar
           <https://vega.github.io/vega-lite/docs/stack.html#layered-bar-chart>`__ and area
           chart.
 
@@ -3730,7 +3788,7 @@ class X2(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -3817,8 +3875,8 @@ class X2Value(ValueChannelMixin, core.XValueDef):
         super(X2Value, self).__init__(value=value, **kwds)
 
 
-class Xerror(FieldChannelMixin, core.SecondaryFieldDef):
-    """Xerror schema wrapper
+class XError(FieldChannelMixin, core.SecondaryFieldDef):
+    """XError schema wrapper
 
     Mapping(required=[shorthand])
     A field definition of a secondary channel that shares a scale with another primary channel.
@@ -3834,7 +3892,7 @@ class Xerror(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -3898,12 +3956,12 @@ class Xerror(FieldChannelMixin, core.SecondaryFieldDef):
 
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, field=Undefined,
                  timeUnit=Undefined, title=Undefined, **kwds):
-        super(Xerror, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
+        super(XError, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
                                      timeUnit=timeUnit, title=title, **kwds)
 
 
-class XerrorValue(ValueChannelMixin, core.NumberValueDef):
-    """XerrorValue schema wrapper
+class XErrorValue(ValueChannelMixin, core.NumberValueDef):
+    """XErrorValue schema wrapper
 
     Mapping(required=[value])
     Definition object for a constant value of an encoding channel.
@@ -3918,11 +3976,11 @@ class XerrorValue(ValueChannelMixin, core.NumberValueDef):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(XerrorValue, self).__init__(value=value, **kwds)
+        super(XErrorValue, self).__init__(value=value, **kwds)
 
 
-class Xerror2(FieldChannelMixin, core.SecondaryFieldDef):
-    """Xerror2 schema wrapper
+class XError2(FieldChannelMixin, core.SecondaryFieldDef):
+    """XError2 schema wrapper
 
     Mapping(required=[shorthand])
     A field definition of a secondary channel that shares a scale with another primary channel.
@@ -3938,7 +3996,7 @@ class Xerror2(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -4002,12 +4060,12 @@ class Xerror2(FieldChannelMixin, core.SecondaryFieldDef):
 
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, field=Undefined,
                  timeUnit=Undefined, title=Undefined, **kwds):
-        super(Xerror2, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
+        super(XError2, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
                                       timeUnit=timeUnit, title=title, **kwds)
 
 
-class Xerror2Value(ValueChannelMixin, core.NumberValueDef):
-    """Xerror2Value schema wrapper
+class XError2Value(ValueChannelMixin, core.NumberValueDef):
+    """XError2Value schema wrapper
 
     Mapping(required=[value])
     Definition object for a constant value of an encoding channel.
@@ -4022,7 +4080,7 @@ class Xerror2Value(ValueChannelMixin, core.NumberValueDef):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(Xerror2Value, self).__init__(value=value, **kwds)
+        super(XError2Value, self).__init__(value=value, **kwds)
 
 
 class Y(FieldChannelMixin, core.PositionFieldDef):
@@ -4124,7 +4182,7 @@ class Y(FieldChannelMixin, core.PositionFieldDef):
         **Default value:** ``"ascending"``
 
         **Note:** ``null`` is not supported for ``row`` and ``column``.
-    stack : anyOf(:class:`StackOffset`, None)
+    stack : anyOf(:class:`StackOffset`, None, boolean)
         Type of stacking offset if the field should be stacked.
         ``stack`` is only applicable for ``x`` and ``y`` channels with continuous domains.
         For example, ``stack`` of ``y`` can be used to customize stacking for a vertical bar
@@ -4133,16 +4191,17 @@ class Y(FieldChannelMixin, core.PositionFieldDef):
         ``stack`` can be one of the following values:
 
 
-        * `"zero"`: stacking with baseline offset at zero value of the scale (for creating
-          typical stacked [bar](https://vega.github.io/vega-lite/docs/stack.html#bar) and
-          `area <https://vega.github.io/vega-lite/docs/stack.html#area>`__ chart).
+        * ``"zero"`` or `true`: stacking with baseline offset at zero value of the scale
+          (for creating typical stacked
+          [bar](https://vega.github.io/vega-lite/docs/stack.html#bar) and `area
+          <https://vega.github.io/vega-lite/docs/stack.html#area>`__ chart).
         * ``"normalize"`` - stacking with normalized domain (for creating `normalized
           stacked bar and area charts
           <https://vega.github.io/vega-lite/docs/stack.html#normalized>`__.
           :raw-html:`<br/>`
         - ``"center"`` - stacking with center baseline (for `streamgraph
         <https://vega.github.io/vega-lite/docs/stack.html#streamgraph>`__ ).
-        * ``null`` - No-stacking. This will produce layered `bar
+        * ``null`` or ``false`` - No-stacking. This will produce layered `bar
           <https://vega.github.io/vega-lite/docs/stack.html#layered-bar-chart>`__ and area
           chart.
 
@@ -4258,7 +4317,7 @@ class Y2(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -4345,8 +4404,8 @@ class Y2Value(ValueChannelMixin, core.YValueDef):
         super(Y2Value, self).__init__(value=value, **kwds)
 
 
-class Yerror(FieldChannelMixin, core.SecondaryFieldDef):
-    """Yerror schema wrapper
+class YError(FieldChannelMixin, core.SecondaryFieldDef):
+    """YError schema wrapper
 
     Mapping(required=[shorthand])
     A field definition of a secondary channel that shares a scale with another primary channel.
@@ -4362,7 +4421,7 @@ class Yerror(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -4426,12 +4485,12 @@ class Yerror(FieldChannelMixin, core.SecondaryFieldDef):
 
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, field=Undefined,
                  timeUnit=Undefined, title=Undefined, **kwds):
-        super(Yerror, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
+        super(YError, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
                                      timeUnit=timeUnit, title=title, **kwds)
 
 
-class YerrorValue(ValueChannelMixin, core.NumberValueDef):
-    """YerrorValue schema wrapper
+class YErrorValue(ValueChannelMixin, core.NumberValueDef):
+    """YErrorValue schema wrapper
 
     Mapping(required=[value])
     Definition object for a constant value of an encoding channel.
@@ -4446,11 +4505,11 @@ class YerrorValue(ValueChannelMixin, core.NumberValueDef):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(YerrorValue, self).__init__(value=value, **kwds)
+        super(YErrorValue, self).__init__(value=value, **kwds)
 
 
-class Yerror2(FieldChannelMixin, core.SecondaryFieldDef):
-    """Yerror2 schema wrapper
+class YError2(FieldChannelMixin, core.SecondaryFieldDef):
+    """YError2 schema wrapper
 
     Mapping(required=[shorthand])
     A field definition of a secondary channel that shares a scale with another primary channel.
@@ -4466,7 +4525,7 @@ class Yerror2(FieldChannelMixin, core.SecondaryFieldDef):
         (e.g., ``mean``, ``sum``, ``median``, ``min``, ``max``, ``count`` ).
 
         **Default value:** ``undefined`` (None)
-    bin : anyOf(boolean, :class:`BinParams`, enum('binned'), None)
+    bin : None
         A flag for binning a ``quantitative`` field, `an object defining binning parameters
         <https://vega.github.io/vega-lite/docs/bin.html#params>`__, or indicating that the
         data for ``x`` or ``y`` channel are binned before they are imported into Vega-Lite (
@@ -4530,12 +4589,12 @@ class Yerror2(FieldChannelMixin, core.SecondaryFieldDef):
 
     def __init__(self, shorthand=Undefined, aggregate=Undefined, bin=Undefined, field=Undefined,
                  timeUnit=Undefined, title=Undefined, **kwds):
-        super(Yerror2, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
+        super(YError2, self).__init__(shorthand=shorthand, aggregate=aggregate, bin=bin, field=field,
                                       timeUnit=timeUnit, title=title, **kwds)
 
 
-class Yerror2Value(ValueChannelMixin, core.NumberValueDef):
-    """Yerror2Value schema wrapper
+class YError2Value(ValueChannelMixin, core.NumberValueDef):
+    """YError2Value schema wrapper
 
     Mapping(required=[value])
     Definition object for a constant value of an encoding channel.
@@ -4550,4 +4609,4 @@ class Yerror2Value(ValueChannelMixin, core.NumberValueDef):
     _class_is_valid_at_instantiation = False
 
     def __init__(self, value, **kwds):
-        super(Yerror2Value, self).__init__(value=value, **kwds)
+        super(YError2Value, self).__init__(value=value, **kwds)

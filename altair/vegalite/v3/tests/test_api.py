@@ -2,6 +2,7 @@
 
 import io
 import json
+import operator
 import os
 import tempfile
 
@@ -10,11 +11,19 @@ import pytest
 import pandas as pd
 
 import altair.vegalite.v3 as alt
+from altair.utils import AltairDeprecationWarning
 
 try:
     import selenium
 except ImportError:
     selenium = None
+
+
+OP_DICT = {
+    'layer': operator.add,
+    'hconcat': operator.or_,
+    'vconcat': operator.and_,
+}
 
 
 @pytest.fixture
@@ -214,6 +223,38 @@ def test_save(format, basic_chart):
         assert content.startswith('<!DOCTYPE html>')
 
 
+def test_facet():
+    # wrapped facet
+    chart1 = alt.Chart('data.csv').mark_point().encode(
+        x='x:Q',
+        y='y:Q',
+    ).facet(
+        'category:N',
+        columns=2
+    )
+
+    dct1 = chart1.to_dict()
+
+    assert dct1['facet'] == alt.Facet('category:N').to_dict()
+    assert dct1['columns'] == 2
+    assert dct1['data'] == alt.UrlData('data.csv').to_dict()
+
+    # explicit row/col facet
+    chart2 = alt.Chart('data.csv').mark_point().encode(
+        x='x:Q',
+        y='y:Q',
+    ).facet(
+        row='category1:Q',
+        column='category2:Q'
+    )
+
+    dct2 = chart2.to_dict()
+
+    assert dct2['facet']['row'] == alt.Facet('category1:Q').to_dict()
+    assert dct2['facet']['column'] == alt.Facet('category2:Q').to_dict()
+    assert 'columns' not in dct2
+    assert dct2['data'] == alt.UrlData('data.csv').to_dict()
+
 def test_facet_parse():
     chart = alt.Chart('data.csv').mark_point().encode(
         x='x:Q',
@@ -254,35 +295,36 @@ def test_facet_parse_data():
                             'row': {'field': 'row', 'type': 'nominal'}}
 
 
-def test_SelectionMapping():
+def test_selection():
     # test instantiation of selections
     interval = alt.selection_interval(name='selec_1')
-    assert interval['selec_1'].type == 'interval'
-    assert interval._get_name() == 'selec_1'
+    assert interval.selection.type == 'interval'
+    assert interval.name == 'selec_1'
 
     single = alt.selection_single(name='selec_2')
-    assert single['selec_2'].type == 'single'
-    assert single._get_name() == 'selec_2'
+    assert single.selection.type == 'single'
+    assert single.name == 'selec_2'
 
     multi = alt.selection_multi(name='selec_3')
-    assert multi['selec_3'].type == 'multi'
-    assert multi._get_name() == 'selec_3'
+    assert multi.selection.type == 'multi'
+    assert multi.name == 'selec_3'
 
-    # test addition
-    x = single + multi + interval
-    assert set(x.to_dict().keys()) == {'selec_1', 'selec_2', 'selec_3'}
-
-    y = single.copy()
-    y += multi
-    y += interval
-    assert x.to_dict() == y.to_dict()
+    # test adding to chart
+    chart = alt.Chart().add_selection(single)
+    chart = chart.add_selection(multi, interval)
+    assert set(chart.selection.keys()) == {'selec_1', 'selec_2', 'selec_3'}
 
     # test logical operations
-    x = single & multi
-    assert isinstance(x, alt.SelectionAnd)
+    assert isinstance(single & multi, alt.SelectionAnd)
+    assert isinstance(single | multi, alt.SelectionOr)
+    assert isinstance(~single, alt.SelectionNot)
 
-    y = single | multi
-    assert isinstance(y, alt.SelectionOr)
+    # test that default names increment (regression for #1454)
+    sel1 = alt.selection_single()
+    sel2 = alt.selection_multi()
+    sel3 = alt.selection_interval()
+    names = {s.name for s in (sel1, sel2, sel3)}
+    assert len(names) == 3
 
 
 def test_transforms():
@@ -312,18 +354,14 @@ def test_transforms():
     chart = alt.Chart().transform_joinaggregate(min='min(x)', groupby=['key'])
     kwds = {
         'joinaggregate': [
-            alt.JoinAggregateFieldDef(field='x', op=alt.AggregateOp('min'), **{'as': 'min'})
+            alt.JoinAggregateFieldDef(
+                field=alt.FieldName('x'),
+                op=alt.AggregateOp('min'),
+                **{'as': alt.FieldName('min')})
         ],
         'groupby': ['key']
     }
-    assert chart.transform == [
-        alt.JoinAggregateTransform(
-            joinaggregate=[
-                alt.JoinAggregateFieldDef(field='x', op=alt.AggregateOp('min'), **{'as': 'min'})
-            ],
-            groupby=['key']
-        )
-    ]
+    assert chart.transform == [alt.JoinAggregateTransform(**kwds)]
 
     # filter transform
     chart = alt.Chart().transform_filter("datum.a < 4")
@@ -406,6 +444,25 @@ def test_resolve_methods():
     assert chart.resolve == alt.Resolve(scale=alt.ScaleResolveMap(x='shared', y='independent'))
 
 
+def test_layer_marks():
+    chart = alt.LayerChart().mark_point()
+    assert chart.mark == 'point'
+
+    chart = alt.LayerChart().mark_point(color='red')
+    assert chart.mark == alt.MarkDef('point', color='red')
+
+    chart = alt.LayerChart().mark_bar()
+    assert chart.mark == 'bar'
+
+    chart = alt.LayerChart().mark_bar(color='green')
+    assert chart.mark == alt.MarkDef('bar', color='green')
+
+
+def test_layer_encodings():
+    chart = alt.LayerChart().encode(x='column:Q')
+    assert chart.encoding.x == alt.X(shorthand='column:Q')
+
+
 def test_add_selection():
     selections = [alt.selection_interval(),
                   alt.selection_single(),
@@ -416,8 +473,17 @@ def test_add_selection():
         selections[1],
         selections[2]
     )
-    expected = selections[0] + selections[1] + selections[2]
-    assert chart.selection.to_dict() == expected.to_dict()
+    expected = {s.name: s.selection for s in selections}
+    assert chart.selection == expected
+
+
+def test_selection_property():
+    sel = alt.selection_interval()
+    chart = alt.Chart('data.csv').mark_point().properties(
+        selection=sel
+    )
+
+    assert list(chart['selection'].keys()) == [sel.name]
 
 
 def test_LookupData():
@@ -438,10 +504,12 @@ def test_themes():
 
     try:
         alt.themes.enable('default')
-        assert chart.to_dict()['config'] == {"view": {"width": 400, "height": 300}}
+        assert chart.to_dict()['config'] == {"mark": {"tooltip": None},
+                                             "view": {"width": 400, "height": 300}}
 
         alt.themes.enable('opaque')
         assert chart.to_dict()['config'] == {"background": "white",
+                                             "mark": {"tooltip": None},
                                              "view": {"width": 400, "height": 300}}
 
         alt.themes.enable('none')
@@ -459,10 +527,14 @@ def test_chart_from_dict():
               base + base,
               base | base,
               base & base,
-              base.facet(row='c:N'),
-              base.repeat(row=['c:N', 'd:N'])]
+              base.facet('c:N'),
+              (base + base).facet(row='c:N', data='data.csv'),
+              base.repeat(['c', 'd']),
+              (base + base).repeat(row=['c', 'd'])
+    ]
 
     for chart in charts:
+        print(chart)
         chart_out = alt.Chart.from_dict(chart.to_dict())
         assert type(chart_out) is type(chart)
 
@@ -472,7 +544,10 @@ def test_chart_from_dict():
 
 
 def test_consolidate_datasets(basic_chart):
-    chart = basic_chart | basic_chart
+    subchart1 = basic_chart
+    subchart2 = basic_chart.copy()
+    subchart2.data = basic_chart.data.copy()
+    chart = subchart1 | subchart2
 
     with alt.data_transformers.enable(consolidate_datasets=True):
         dct_consolidated = chart.to_dict()
@@ -528,3 +603,140 @@ def test_consolidate_InlineData():
     with alt.data_transformers.enable(consolidate_datasets=True):
         dct = chart.to_dict()
     assert dct['data'] == data.to_dict()
+
+
+def test_deprecated_encodings():
+    base = alt.Chart('data.txt').mark_point()
+
+    with pytest.warns(AltairDeprecationWarning) as record:
+        chart1 = base.encode(strokeOpacity=alt.Strokeopacity('x:Q')).to_dict()
+    assert 'alt.StrokeOpacity' in record[0].message.args[0]
+    chart2 = base.encode(strokeOpacity=alt.StrokeOpacity('x:Q')).to_dict()
+
+    assert chart1 == chart2
+
+
+def test_repeat():
+    # wrapped repeat
+    chart1 = alt.Chart('data.csv').mark_point().encode(
+        x=alt.X(alt.repeat(), type='quantitative'),
+        y='y:Q',
+    ).repeat(
+        ['A', 'B', 'C', 'D'],
+        columns=2
+    )
+
+    dct1 = chart1.to_dict()
+
+    assert dct1['repeat'] == ['A', 'B', 'C', 'D']
+    assert dct1['columns'] == 2
+    assert dct1['spec']['encoding']['x']['field'] == {'repeat': 'repeat'}
+
+    # explicit row/col repeat
+    chart2 = alt.Chart('data.csv').mark_point().encode(
+        x=alt.X(alt.repeat('row'), type='quantitative'),
+        y=alt.Y(alt.repeat('column'), type='quantitative')
+    ).repeat(
+        row=['A', 'B', 'C'],
+        column=['C', 'B', 'A']
+    )
+
+    dct2 = chart2.to_dict()
+
+    assert dct2['repeat'] == {'row': ['A', 'B', 'C'], 'column': ['C', 'B', 'A']}
+    assert 'columns' not in dct2
+    assert dct2['spec']['encoding']['x']['field'] == {'repeat': 'row'}
+    assert dct2['spec']['encoding']['y']['field'] == {'repeat': 'column'}
+
+
+def test_data_property():
+    data = pd.DataFrame({'x': [1, 2, 3], 'y': list('ABC')})
+    chart1 = alt.Chart(data).mark_point()
+    chart2 = alt.Chart().mark_point().properties(data=data)
+
+    assert chart1.to_dict() == chart2.to_dict()
+
+    
+@pytest.mark.parametrize('method', ['layer', 'hconcat', 'vconcat', 'concat'])
+@pytest.mark.parametrize('data', ['data.json', pd.DataFrame({'x': range(3), 'y': list('abc')})])
+def test_subcharts_with_same_data(method, data):
+    func = getattr(alt, method)
+
+    point = alt.Chart(data).mark_point().encode(x='x:Q', y='y:Q')
+    line = point.mark_line()
+    text = point.mark_text()
+
+    chart1 = func(point, line, text)
+    assert chart1.data is not alt.Undefined
+    assert all(c.data is alt.Undefined for c in getattr(chart1, method))
+
+    if method != 'concat':
+        op = OP_DICT[method]
+        chart2 = op(op(point, line), text)
+        assert chart2.data is not alt.Undefined
+        assert all(c.data is alt.Undefined for c in getattr(chart2, method))
+
+
+@pytest.mark.parametrize('method', ['layer', 'hconcat', 'vconcat', 'concat'])
+@pytest.mark.parametrize('data', ['data.json', pd.DataFrame({'x': range(3), 'y': list('abc')})])
+def test_subcharts_different_data(method, data):
+    func = getattr(alt, method)
+
+    point = alt.Chart(data).mark_point().encode(x='x:Q', y='y:Q')
+    otherdata = alt.Chart('data.csv').mark_point().encode(x='x:Q', y='y:Q')
+    nodata = alt.Chart().mark_point().encode(x='x:Q', y='y:Q')
+
+    chart1 = func(point, otherdata)
+    assert chart1.data is alt.Undefined
+    assert getattr(chart1, method)[0].data is data
+
+    chart2 = func(point, nodata)
+    assert chart2.data is alt.Undefined
+    assert getattr(chart2, method)[0].data is data
+
+
+def test_layer_facet(basic_chart):
+    chart = (basic_chart + basic_chart).facet(row='row:Q')
+    assert chart.data is not alt.Undefined
+    assert chart.spec.data is alt.Undefined
+    for layer in chart.spec.layer:
+        assert layer.data is alt.Undefined
+
+    dct = chart.to_dict()
+    assert 'data' in dct
+
+
+def test_layer_errors():
+    toplevel_chart = alt.Chart(
+        'data.txt'
+    ).mark_point().configure_legend(
+        columns=2
+    )
+
+    facet_chart1 = alt.Chart('data.txt').mark_point().encode(
+        facet='row:Q'
+    )
+
+    facet_chart2 = alt.Chart('data.txt').mark_point().facet('row:Q')
+
+    repeat_chart = alt.Chart('data.txt').mark_point().repeat(['A', 'B', 'C'])
+
+    simple_chart = alt.Chart('data.txt').mark_point()
+
+    with pytest.raises(ValueError) as err:
+        toplevel_chart + simple_chart
+    assert str(err.value).startswith(
+        'Objects with "config" attribute cannot be used within LayerChart.'
+    )
+
+    with pytest.raises(ValueError) as err:
+        repeat_chart + simple_chart
+    assert str(err.value) == "Repeat charts cannot be layered."
+
+    with pytest.raises(ValueError) as err:
+        facet_chart1 + simple_chart
+    assert str(err.value) == "Faceted charts cannot be layered."
+
+    with pytest.raises(ValueError) as err:
+        alt.layer(simple_chart) + facet_chart2
+    assert str(err.value) == "Faceted charts cannot be layered."

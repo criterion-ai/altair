@@ -42,7 +42,7 @@ Firefox, which requires the following:
   code without opening an actual browser window).
   If you use homebrew on OSX, this can be installed with::
 
-      $ brew install chromedriver
+      $ brew cask install chromedriver
       $ brew install geckodriver
 
   See the ``chromedriver`` or ``geckodriver`` documentation for details on
@@ -187,6 +187,20 @@ javascript-enabled web browser:
     </html>
 
 You can view the result here: `chart.html </_static/chart.html>`_.
+
+By default ``canvas`` is used for rendering the visualization in vegaEmbed. To 
+change to ``svg`` rendering, use the ``embed_options`` as such:
+
+.. code-block:: python
+
+    chart.save('chart.html', embed_options={'renderer':'svg'})
+
+
+.. note::
+
+   This is not the same as ``alt.renderers.enable('svg')``, what renders a 
+   static ``svg`` image.
+
 
 .. _Selenium: http://selenium-python.readthedocs.io/
 .. _Google Chrome: https://www.google.com/chrome/
